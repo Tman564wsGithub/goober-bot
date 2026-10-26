@@ -5,6 +5,7 @@ use color_eyre::Result;
 use dashmap::DashMap;
 use poise::{Framework, FrameworkOptions};
 use serenity::{all::Ready, async_trait, prelude::*};
+use serenity::all::ActivityData;
 use songbird::{
   Config, SerenityInit,
   driver::{Channels, DecodeConfig, DecodeMode, SampleRate},
@@ -24,8 +25,10 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-  async fn ready(&self, _: Context, ready_data: Ready) {
-    info!("{} is ready!", ready_data.user.name);
+  async fn ready(&self, ctx: Context, ready_data: Ready) {
+    let version = env!("CARGO_PKG_VERSION");
+    info!("{} is ready! (v{version})", ready_data.user.name);
+    ctx.set_activity(Some(ActivityData::custom(format!("Running v{version}"))))
   }
 }
 
@@ -73,7 +76,6 @@ async fn main() -> Result<()> {
     .register_songbird_from_config(songbird_config)
     .await?;
 
-  info!("Goober bot v{version} starting!");
   if let Err(error) = bot.start().await {
     error!("Bot exited with error: {error}");
   }
