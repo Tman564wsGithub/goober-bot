@@ -1,0 +1,10 @@
+.idea/
+.vscode/
+
+
+/.cargo/
+/target/
+/releases/
+Cargo.lock
+
+/.env

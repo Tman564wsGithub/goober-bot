@@ -1,0 +1,15 @@
+edition = "2024"
+
+max_width = 100
+tab_spaces = 2
+
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+
+use_field_init_shorthand = true
+
+trailing_comma = "Vertical"
+
+float_literal_trailing_zero = "IfNoPostfix"
+
+reorder_impl_items = true
