@@ -33,11 +33,13 @@ impl EventHandler for Handler {
 async fn main() -> Result<()> {
   tracing_subscriber::fmt::fmt()
     .with_env_filter(EnvFilter::new(
-      "info,serenity=warn,songbird=warn,poise=warn,songbird::driver::tasks::udp_rx=off",
+      "warn,goober_bot=info,songbird::driver::tasks::udp_rx=off",
     ))
     .init();
 
   dotenvy::dotenv()?;
+
+  let version = env!("CARGO_PKG_VERSION");
 
   let bot_token = env::var("BOT_TOKEN")?;
   let intents = GatewayIntents::GUILD_MESSAGES
@@ -71,6 +73,7 @@ async fn main() -> Result<()> {
     .register_songbird_from_config(songbird_config)
     .await?;
 
+  info!("Goober bot v{version} starting!");
   if let Err(error) = bot.start().await {
     error!("Bot exited with error: {error}");
   }
