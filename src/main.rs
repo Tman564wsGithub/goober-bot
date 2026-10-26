@@ -4,8 +4,11 @@ use std::env;
 use color_eyre::Result;
 use dashmap::DashMap;
 use poise::{Framework, FrameworkOptions};
-use serenity::{all::Ready, async_trait, prelude::*};
-use serenity::all::ActivityData;
+use serenity::{
+  all::{ActivityData, Ready},
+  async_trait,
+  prelude::*,
+};
 use songbird::{
   Config, SerenityInit,
   driver::{Channels, DecodeConfig, DecodeMode, SampleRate},
@@ -28,7 +31,7 @@ impl EventHandler for Handler {
   async fn ready(&self, ctx: Context, ready_data: Ready) {
     let version = env!("CARGO_PKG_VERSION");
     info!("{} is ready! (v{version})", ready_data.user.name);
-    ctx.set_activity(Some(ActivityData::custom(format!("Running v{version}"))))
+    ctx.set_activity(Some(ActivityData::custom(format!("Running v{version}"))));
   }
 }
 
@@ -41,8 +44,6 @@ async fn main() -> Result<()> {
     .init();
 
   dotenvy::dotenv()?;
-
-  let version = env!("CARGO_PKG_VERSION");
 
   let bot_token = env::var("BOT_TOKEN")?;
   let intents = GatewayIntents::GUILD_MESSAGES
