@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use dashmap::DashMap;
-use songbird::model::id::{GuildId, UserId};
+use serenity::all::{GuildId, UserId};
+use thiserror::Error;
 
 use crate::audio::AudioBuffer;
 
@@ -18,3 +19,15 @@ pub struct GuildData {
 }
 
 pub type CommandContext<'a> = poise::Context<'a, BotData, color_eyre::Report>;
+
+#[derive(Error, Debug)]
+pub enum VoiceError {
+  #[error("already in a vc")]
+  AlreadyInVC,
+  #[error("not in a vc")]
+  NotInVC,
+  #[error("songbird is initializing")]
+  SongbirdNotLoaded,
+  #[error("songbird error")]
+  SongbirdError(#[from] songbird::error::JoinError),
+}
