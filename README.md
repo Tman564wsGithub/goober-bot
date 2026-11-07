@@ -1,0 +1,1 @@
+## The source code for the bot for the discord server Gooberville
