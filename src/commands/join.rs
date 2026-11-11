@@ -1,7 +1,7 @@
 use serenity::all::ChannelId;
 
 use crate::{
-  types::{CommandContext, VoiceError},
+  types::{CommandContext, CommandError, VoiceError},
   voice::join_voice,
 };
 
@@ -12,29 +12,30 @@ pub async fn join(
   #[description = "Voice Channel"]
   #[channel_types("Voice")]
   voice_channel: ChannelId,
-) -> color_eyre::Result<()> {
+) -> Result<(), CommandError> {
   ctx.defer_ephemeral().await?;
 
-  #[allow(clippy::unwrap_used)]
-  let guild_id = ctx.guild_id().unwrap();
+  let Some(guild_id) = ctx.guild_id() else {
+    ctx.reply("Not in a guild").await?;
+    return Ok(());
+  };
+
   let guild_data = ctx.data().guilds.entry(guild_id).or_default().clone();
 
   match join_voice(ctx.serenity_context(), guild_id, voice_channel, guild_data).await {
     Ok(()) => {
       ctx.reply("Joined VC").await?;
     }
+    Err(VoiceError::VoiceModuleInitializing) => {
+      ctx.reply("Voice module initializing..").await?;
+    }
     Err(VoiceError::AlreadyInVC) => {
-      ctx.reply("Already in a VC").await?;
+      ctx.reply("Already in VC").await?;
     }
     Err(VoiceError::NotInVC) => {
-      ctx.reply("Not in a VC").await?;
+      ctx.reply("Not in VC").await?;
     }
-    Err(VoiceError::SongbirdNotLoaded) => {
-      ctx.reply("Songbird not loaded").await?;
-    }
-    Err(VoiceError::SongbirdError(err)) => {
-      ctx.reply(format!("A error occurred: {err}")).await?;
-    }
+    Err(VoiceError::SongbirdError(err)) => return Err(CommandError::SongbirdError(err)),
   }
 
   Ok(())

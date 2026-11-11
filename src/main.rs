@@ -3,7 +3,7 @@ use std::env;
 
 use color_eyre::Result;
 use dashmap::DashMap;
-use poise::{Framework, FrameworkOptions};
+use poise::{BoxFuture, Framework, FrameworkError, FrameworkOptions};
 use serenity::{
   all::{ActivityData, Ready},
   async_trait,
@@ -16,7 +16,7 @@ use songbird::{
 use tracing::{error, info};
 use tracing_subscriber::EnvFilter;
 
-use crate::types::BotData;
+use crate::types::{BotData, CommandError};
 
 pub mod audio;
 mod commands;
@@ -33,6 +33,30 @@ impl EventHandler for Handler {
     info!("{} is ready! (v{version})", ready_data.user.name);
     ctx.set_activity(Some(ActivityData::custom(format!("Running v{version}"))));
   }
+}
+
+fn on_command_error(error: FrameworkError<BotData, CommandError>) -> BoxFuture<()> {
+  Box::pin(async move {
+    match error {
+      FrameworkError::Command { error, ctx, .. } => match error {
+        CommandError::SongbirdError(err) => {
+          error!("Error: Songbird error: {err}");
+          _ = ctx
+            .reply(format!("Internal error: Songbird error: {err}"))
+            .await;
+        }
+        CommandError::SerenityError(err) => {
+          error!("Error: Serenity error: {err}");
+          _ = ctx
+            .reply(format!("Internal error: Serenity error: {err}"))
+            .await;
+        }
+      },
+      other => {
+        _ = poise::builtins::on_error(other).await;
+      }
+    }
+  })
 }
 
 #[tokio::main]
@@ -54,6 +78,7 @@ async fn main() -> Result<()> {
   let framework = Framework::builder()
     .options(FrameworkOptions {
       commands: vec![commands::join(), commands::clip(), commands::leave()],
+      on_error: on_command_error,
       ..Default::default()
     })
     .setup(|ctx, _ready, framework| {

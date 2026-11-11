@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use poise::CreateReply;
 use serenity::all::{CreateAttachment, User, UserId};
 
-use crate::{types::CommandContext, wave_utils::WaveWriter};
+use crate::{
+  types::{CommandContext, CommandError},
+  wave_utils::WaveWriter,
+};
 
 #[allow(clippy::unreadable_literal)]
 const BOT_ID: u64 = 1549553408086638682;
@@ -15,11 +18,15 @@ const BOT_ID: u64 = 1549553408086638682;
 pub async fn clip(
   ctx: CommandContext<'_>,
   #[description = "Optional user to clip"] user: Option<User>,
-) -> color_eyre::Result<()> {
+) -> Result<(), CommandError> {
   ctx.defer().await?;
 
-  #[allow(clippy::unwrap_used)]
-  let guild_id = ctx.guild_id().unwrap();
+  let Some(guild_id) = ctx.guild_id() else {
+    ctx.defer_ephemeral().await?;
+    ctx.reply("Not in guild").await?;
+    return Ok(());
+  };
+
   let Some(guild_data) = ctx.data().guilds.get(&guild_id) else {
     ctx.defer_ephemeral().await?;
     ctx.reply("Not in a VC").await?;
@@ -37,7 +44,7 @@ pub async fn clip(
     && user_id.id == UserId::new(BOT_ID)
   {
     ctx.defer_ephemeral().await?;
-    reply = reply.content("I cannot clip myself, silly!");
+    reply = reply.content("I cannot clip myself");
     ctx.send(reply).await?;
     return Ok(());
   }

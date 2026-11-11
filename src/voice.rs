@@ -95,7 +95,7 @@ pub async fn join_voice(
 ) -> Result<(), VoiceError> {
   let Some(manager) = songbird::get(ctx).await else {
     warn!("Tried to load songbird while still initializing");
-    return Err(VoiceError::SongbirdNotLoaded);
+    return Err(VoiceError::VoiceModuleInitializing);
   };
 
   if manager.get(guild_id).is_some() {
@@ -128,7 +128,7 @@ pub async fn join_voice(
 pub async fn leave_voice(ctx: &Context, guild_id: GuildId) -> Result<(), VoiceError> {
   let Some(manager) = songbird::get(ctx).await else {
     warn!("Tried to load songbird while still initializing");
-    return Err(VoiceError::SongbirdNotLoaded);
+    return Err(VoiceError::VoiceModuleInitializing);
   };
 
   if manager.get(guild_id).is_none() {
